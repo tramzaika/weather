@@ -7,14 +7,22 @@
 //
 
 import Foundation
+import CoreLocation
 
-struct  NetworkWeatherManager {
+class NetworkWeatherManager {
     
     var onCompletion:((CurrentWeather) -> Void)?
     
     func fetchCurrentWeather(forCity city: String){
-        let urlString = "https://api.openweathermap.org/data/2.5/weather?q=\(city)&appid=\(apiKey)"
-        guard let url = URL(string: urlString) else {return}
+        let urlString = "https://api.openweathermap.org/data/2.5/weather?q=\(city)&appid=\(apiKey)&units=metric"
+      urlWork(urlString: urlString)
+    }
+    func fetchCurrentWeather(latitude: CLLocationDegrees, longitude: CLLocationDegrees){
+          let urlString = "https://api.openweathermap.org/data/2.5/weather?lat=\(latitude)&lon=\(longitude)&appid=\(apiKey)&units=metric"
+        urlWork(urlString: urlString)
+      }
+   fileprivate func urlWork(urlString: String){
+    guard let url = URL(string: urlString) else {return}
         let session = URLSession(configuration: .default)
 
         let task = session.dataTask(with: url) { data, response, error in
@@ -22,14 +30,11 @@ struct  NetworkWeatherManager {
                 if let currentWeather = self.parseJSON(withData: data){
                     self.onCompletion?(currentWeather)
                 }
-                
-            //let dataString = String(data: data, encoding: .utf8)
-            //print(dataString!)
         }
-
         }
         task.resume()
     }
+       
     
     func parseJSON(withData data: Data) -> CurrentWeather? {
         let decoder = JSONDecoder()
